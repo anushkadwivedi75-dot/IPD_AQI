@@ -1,112 +1,69 @@
+import 'package:airsentine1/core/aqi_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 
-enum AqiCategory {
-  good,
-  moderate,
-  unhealthySensitive,
-  unhealthy,
-  veryUnhealthy,
-  hazardous,
-}
+export 'package:airsentine1/core/aqi_utils.dart';
 
-extension AqiCategoryProperties on AqiCategory {
-  String get label {
-    switch (this) {
-      case AqiCategory.good:
-        return 'Good';
-      case AqiCategory.moderate:
-        return 'Moderate';
-      case AqiCategory.unhealthySensitive:
-        return 'Unhealthy for Sensitive Groups';
-      case AqiCategory.unhealthy:
-        return 'Unhealthy';
-      case AqiCategory.veryUnhealthy:
-        return 'Very Unhealthy';
-      case AqiCategory.hazardous:
-        return 'Hazardous';
-    }
-  }
+/// Legacy enum export / alias for backward compatibility
+typedef AqiCategory = CpcbAqiCategory;
 
-  Color get color {
-    switch (this) {
-      case AqiCategory.good:
-        return const Color(0xFF2D8A4A);
-      case AqiCategory.moderate:
-        return const Color(0xFFECA400);
-      case AqiCategory.unhealthySensitive:
-        return const Color(0xFFF08C00);
-      case AqiCategory.unhealthy:
-        return const Color(0xFFE65100);
-      case AqiCategory.veryUnhealthy:
-        return const Color(0xFFC62147);
-      case AqiCategory.hazardous:
-        return const Color(0xFF7C1E61);
-    }
-  }
-
-  Color get backgroundColor {
-    switch (this) {
-      case AqiCategory.good:
-        return const Color(0xFFE8F6EB);
-      case AqiCategory.moderate:
-        return const Color(0xFFFFF4D2);
-      case AqiCategory.unhealthySensitive:
-        return const Color(0xFFFFE7C1);
-      case AqiCategory.unhealthy:
-        return const Color(0xFFFFE3D1);
-      case AqiCategory.veryUnhealthy:
-        return const Color(0xFFF8D3DE);
-      case AqiCategory.hazardous:
-        return const Color(0xFFF3D7E4);
-    }
-  }
-}
-
-class Pollutant {
+/// Individual Pollutant model according to CPCB standards
+class PollutantDetail {
   final String code;
   final String name;
   final double value;
-  final String unit;
+  final String unit; // 'µg/m³' or 'mg/m³' (CO)
+  final int? subIndex; // CPCB Sub-index value (AQI = max of sub-indices)
   final String trend;
   final String description;
 
-  Pollutant({
+  const PollutantDetail({
     required this.code,
     required this.name,
     required this.value,
     required this.unit,
+    this.subIndex,
     required this.trend,
     required this.description,
   });
 }
 
-class WeatherSummary {
+/// Type alias for backward compatibility
+typedef Pollutant = PollutantDetail;
+
+/// Weather Information model (Celsius, km/h, IST, UV index)
+class WeatherInfo {
   final double temperatureC;
   final int humidity;
   final double windKph;
   final String condition;
   final String sunrise;
   final String sunset;
+  final int uvIndex;
 
-  WeatherSummary({
+  const WeatherInfo({
     required this.temperatureC,
     required this.humidity,
     required this.windKph,
     required this.condition,
     required this.sunrise,
     required this.sunset,
+    this.uvIndex = 6,
   });
 }
 
-class ForecastEntry {
-  final String label;
+/// Type alias for backward compatibility
+typedef WeatherSummary = WeatherInfo;
+
+/// Daily Forecast entry model (DD/MM/YYYY format)
+class DailyForecast {
+  final String label; // e.g. "10/08/2026" or "Today"
   final int aqi;
   final String condition;
   final int high;
   final int low;
 
-  ForecastEntry({
+  const DailyForecast({
     required this.label,
     required this.aqi,
     required this.condition,
@@ -115,23 +72,31 @@ class ForecastEntry {
   });
 }
 
-class HistoryEntry {
-  final String hour;
+/// Type alias for backward compatibility
+typedef ForecastEntry = DailyForecast;
+
+/// Hourly Historical Reading model (IST timestamp HH:mm)
+class HourlyReading {
+  final String hour; // e.g. "06:00"
   final int aqi;
 
-  HistoryEntry({
+  const HourlyReading({
     required this.hour,
     required this.aqi,
   });
 }
 
+/// Type alias for backward compatibility
+typedef HistoryEntry = HourlyReading;
+
+/// Health Advice model
 class HealthAdvice {
   final String title;
   final String description;
   final IconData icon;
   final Color tint;
 
-  HealthAdvice({
+  const HealthAdvice({
     required this.title,
     required this.description,
     required this.icon,
@@ -139,27 +104,26 @@ class HealthAdvice {
   });
 }
 
-class Station {
+/// Monitoring Station model representing an Indian air quality station
+class MonitoringStation {
   final String id;
   final String name;
   final String area;
-  final AqiCategory category;
   final int aqi;
   final String primaryPollutant;
   final String summary;
-  final WeatherSummary weather;
-  final List<Pollutant> pollutants;
-  final List<ForecastEntry> forecast;
-  final List<HistoryEntry> history;
+  final WeatherInfo weather;
+  final List<PollutantDetail> pollutants;
+  final List<DailyForecast> forecast;
+  final List<HourlyReading> history;
   final List<HealthAdvice> advice;
   final LatLng location;
   final bool isOutdoor;
 
-  Station({
+  const MonitoringStation({
     required this.id,
     required this.name,
     required this.area,
-    required this.category,
     required this.aqi,
     required this.primaryPollutant,
     required this.summary,
@@ -172,6 +136,11 @@ class Station {
     this.isOutdoor = true,
   });
 
-  Color get color => category.color;
-  Color get background => category.backgroundColor;
+  AqiMeta get aqiMeta => getAqiMeta(aqi);
+  CpcbAqiCategory get category => aqiMeta.category;
+  Color get color => aqiMeta.color;
+  Color get background => aqiMeta.backgroundColor;
 }
+
+/// Type alias for backward compatibility
+typedef Station = MonitoringStation;

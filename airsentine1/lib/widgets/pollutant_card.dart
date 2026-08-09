@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:airsentine1/models/station.dart';
+import 'package:airsentine1/widgets/cards.dart';
+import 'package:flutter/material.dart';
 
 class PollutantCard extends StatelessWidget {
-  final Pollutant pollutant;
+  final PollutantDetail pollutant;
   final VoidCallback? onTap;
 
   const PollutantCard({
@@ -13,40 +14,109 @@ class PollutantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    pollutant.code,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+    final int subIndexValue = pollutant.subIndex ?? pollutant.value.round();
+    final aqiMeta = getAqiMeta(subIndexValue);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final primaryTextColor = isDark ? const Color(0xFFF5F2EB) : const Color(0xFF0F172A);
+    final secondaryTextColor = isDark ? const Color(0xFFA8A29E) : const Color(0xFF64748B);
+
+    return Semantics(
+      button: onTap != null,
+      label: '${pollutant.name} (${pollutant.code}): ${pollutant.value} ${pollutant.unit}, CPCB Sub-index: $subIndexValue (${aqiMeta.label})',
+      child: AppCard(
+        onTap: onTap,
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Top Row: Code + CPCB Sub-Index Badge
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      pollutant.code,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
+                        color: primaryTextColor,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.info_outline,
+                      size: 14,
+                      color: secondaryTextColor,
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: aqiMeta.backgroundColor,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: aqiMeta.color.withValues(alpha: 0.4)),
                   ),
-                  const Icon(
-                    Icons.info_outline,
-                    size: 18,
-                    color: Colors.grey,
+                  child: Text(
+                    'SUB-IDX: $subIndexValue',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                      color: aqiMeta.badgeTextColor,
+                    ),
                   ),
-                ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // Value + Unit
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  pollutant.value < 10
+                      ? pollutant.value.toStringAsFixed(1)
+                      : pollutant.value.toStringAsFixed(0),
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
+                    color: primaryTextColor,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  pollutant.unit,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: secondaryTextColor,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+
+            // Subtitle / Trend
+            Text(
+              pollutant.name.toUpperCase(),
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+                color: secondaryTextColor,
               ),
-              const SizedBox(height: 14),
-              Text(
-                '${pollutant.value.toStringAsFixed(0)} ${pollutant.unit}',
-                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                pollutant.trend,
-                style: TextStyle(color: Colors.grey[700]),
-              ),
-            ],
-          ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
     );

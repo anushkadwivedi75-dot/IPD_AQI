@@ -6,6 +6,7 @@ class PreferencesService {
   static const _alertThresholdKey = 'alert_threshold';
   static const _notificationsEnabledKey = 'notifications_enabled';
   static const _useMetricKey = 'use_metric_units';
+  static const _isDarkModeKey = 'is_dark_mode';
 
   final SharedPreferences _preferences;
 
@@ -21,6 +22,7 @@ class PreferencesService {
   int get alertThreshold => _preferences.getInt(_alertThresholdKey) ?? 100;
   bool get notificationsEnabled => _preferences.getBool(_notificationsEnabledKey) ?? true;
   bool get useMetricUnits => _preferences.getBool(_useMetricKey) ?? true;
+  bool get isDarkMode => _preferences.getBool(_isDarkModeKey) ?? false;
 
   Future<void> setSelectedStationId(String id) async {
     await _preferences.setString(_selectedStationKey, id);
@@ -40,5 +42,9 @@ class PreferencesService {
 
   Future<void> setUseMetricUnits(bool value) async {
     await _preferences.setBool(_useMetricKey, value);
+  }
+
+  Future<void> setIsDarkMode(bool value) async {
+    await _preferences.setBool(_isDarkModeKey, value);
   }
 }
