@@ -84,4 +84,4 @@ class AppTypography {
     fontWeight: FontWeight.w700,
     letterSpacing: 0.2,
   );
-}
+  }
