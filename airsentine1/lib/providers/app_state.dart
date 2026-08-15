@@ -1,5 +1,8 @@
+import 'package:airsentine1/data/aqi_repository.dart';
 import 'package:airsentine1/data/sample_data.dart';
+import 'package:airsentine1/models/heatmap_point.dart';
 import 'package:airsentine1/models/station.dart';
+import 'package:airsentine1/services/api_service.dart';
 import 'package:airsentine1/services/preferences_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,9 +11,35 @@ final preferencesServiceProvider = Provider<PreferencesService>((ref) {
   throw UnimplementedError('PreferencesService has not been initialized.');
 });
 
-/// List of available CPCB monitoring stations
+/// API Service Provider
+final apiServiceProvider = Provider<ApiService>((ref) {
+  return ApiService();
+});
+
+/// AQI Repository Provider
+final aqiRepositoryProvider = Provider<AqiRepository>((ref) {
+  return AqiRepository(apiService: ref.watch(apiServiceProvider));
+});
+
+/// Async Stations Provider (Live API + loading/error states)
+final stationsAsyncProvider = FutureProvider<List<MonitoringStation>>((ref) async {
+  final repository = ref.watch(aqiRepositoryProvider);
+  return await repository.getStations();
+});
+
+/// Async Heatmap Points Provider (Live API + loading/error states)
+final heatmapAsyncProvider = FutureProvider<List<HeatmapPoint>>((ref) async {
+  final repository = ref.watch(aqiRepositoryProvider);
+  return await repository.fetchHeatmap();
+});
+
+/// Synchronous List of available monitoring stations (subscribes to stationsAsyncProvider with fallback)
 final stationsListProvider = Provider<List<MonitoringStation>>((ref) {
-  return stations;
+  final asyncStations = ref.watch(stationsAsyncProvider);
+  return asyncStations.maybeWhen(
+    data: (data) => data,
+    orElse: () => stations,
+  );
 });
 
 /// Currently selected station ID
@@ -159,4 +188,3 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
     await _service.setIsDarkMode(mode == ThemeMode.dark);
   }
 }
-
