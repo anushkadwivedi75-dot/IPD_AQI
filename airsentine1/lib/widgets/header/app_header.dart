@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:airsentine1/features/ai_assistant/presentation/ai_assistant_page.dart';
 import 'package:airsentine1/models/station.dart';
 import 'package:airsentine1/providers/app_state.dart';
 import 'package:airsentine1/widgets/community_alert_banner.dart';
@@ -294,7 +295,7 @@ class AirSentinelHeader extends ConsumerWidget implements PreferredSizeWidget {
       child: Tooltip(
         message: 'Open AI Health Copilot',
         child: InkWell(
-          onTap: () => context.push('/ai-assistant'),
+          onTap: () => showAiAssistantModal(context),
           borderRadius: BorderRadius.circular(20),
           child: Container(
             height: 40,

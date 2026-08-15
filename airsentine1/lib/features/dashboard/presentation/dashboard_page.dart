@@ -1,3 +1,4 @@
+import 'package:airsentine1/features/ai_assistant/presentation/ai_assistant_page.dart';
 import 'package:airsentine1/models/station.dart';
 import 'package:airsentine1/providers/app_state.dart';
 import 'package:airsentine1/widgets/aqi_gauge_bar.dart';
@@ -278,7 +279,7 @@ class DashboardPage extends ConsumerWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () => context.push('/ai-assistant'),
+                  onPressed: () => showAiAssistantModal(context),
                   icon: const Icon(Icons.auto_awesome, size: 18, color: Color(0xFF0F172A)),
                   label: const Text(
                     'CONSULT GEMINI COPILOT',

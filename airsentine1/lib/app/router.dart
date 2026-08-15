@@ -58,7 +58,27 @@ final appRouter = GoRouter(
     GoRoute(
       name: 'ai-assistant',
       path: '/ai-assistant',
-      builder: (context, state) => const AiAssistantPage(),
+      pageBuilder: (context, state) {
+        return CustomTransitionPage(
+          key: state.pageKey,
+          opaque: false,
+          barrierDismissible: true,
+          barrierColor: Colors.black.withValues(alpha: 0.55),
+          transitionDuration: const Duration(milliseconds: 250),
+          child: const AiAssistantPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+              child: ScaleTransition(
+                scale: Tween<double>(begin: 0.94, end: 1.0).animate(
+                  CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+                ),
+                child: child,
+              ),
+            );
+          },
+        );
+      },
     ),
   ],
 );

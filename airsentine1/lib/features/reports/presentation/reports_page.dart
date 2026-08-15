@@ -1,3 +1,4 @@
+import 'package:airsentine1/features/ai_assistant/presentation/ai_assistant_page.dart';
 import 'package:airsentine1/features/reports/presentation/widgets/reports_charts.dart';
 import 'package:airsentine1/models/station.dart';
 import 'package:airsentine1/providers/app_state.dart';
@@ -140,7 +141,7 @@ class ReportsPage extends ConsumerWidget {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () => context.push('/ai-assistant'),
+                onPressed: () => showAiAssistantModal(context),
                 icon: const Icon(Icons.auto_awesome, color: Colors.white, size: 18),
                 label: const Text(
                   'ASK AI FORECAST ADVICE',
