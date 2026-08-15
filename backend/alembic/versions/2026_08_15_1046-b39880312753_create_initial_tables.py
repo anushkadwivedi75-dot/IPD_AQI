@@ -67,6 +67,7 @@ def upgrade() -> None:
             geoalchemy2.types.Geography(
                 geometry_type='POINT',
                 srid=4326,
+                spatial_index=True,
                 from_text='ST_GeogFromText',
                 name='geography',
             ),
@@ -75,13 +76,6 @@ def upgrade() -> None:
         sa.Column('recorded_at', sa.DateTime(timezone=True), nullable=True),
         sa.ForeignKeyConstraint(['device_id'], ['devices.id'], ondelete='CASCADE'),
         sa.PrimaryKeyConstraint('id'),
-    )
-    op.create_index(
-        'idx_readings_location',
-        'readings',
-        ['location'],
-        unique=False,
-        postgresql_using='gist',
     )
 
     # 4. sites
@@ -99,6 +93,7 @@ def upgrade() -> None:
             geoalchemy2.types.Geography(
                 geometry_type='POINT',
                 srid=4326,
+                spatial_index=True,
                 from_text='ST_GeogFromText',
                 name='geography',
             ),
@@ -108,13 +103,6 @@ def upgrade() -> None:
         sa.Column('status', sa.String(), nullable=True),
         sa.ForeignKeyConstraint(['official_device_id'], ['devices.id'], ondelete='SET NULL'),
         sa.PrimaryKeyConstraint('id'),
-    )
-    op.create_index(
-        'idx_sites_location',
-        'sites',
-        ['location'],
-        unique=False,
-        postgresql_using='gist',
     )
 
     # 5. community_reports
@@ -133,6 +121,7 @@ def upgrade() -> None:
             geoalchemy2.types.Geography(
                 geometry_type='POINT',
                 srid=4326,
+                spatial_index=True,
                 from_text='ST_GeogFromText',
                 name='geography',
             ),
@@ -142,13 +131,6 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
         sa.ForeignKeyConstraint(['site_id'], ['sites.id'], ondelete='SET NULL'),
         sa.PrimaryKeyConstraint('id'),
-    )
-    op.create_index(
-        'idx_community_reports_location',
-        'community_reports',
-        ['location'],
-        unique=False,
-        postgresql_using='gist',
     )
 
     # 6. alerts
@@ -171,11 +153,8 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_table('alerts')
-    op.drop_index('idx_community_reports_location', table_name='community_reports', postgresql_using='gist')
     op.drop_table('community_reports')
-    op.drop_index('idx_sites_location', table_name='sites', postgresql_using='gist')
     op.drop_table('sites')
-    op.drop_index('idx_readings_location', table_name='readings', postgresql_using='gist')
     op.drop_table('readings')
     op.drop_table('devices')
     op.drop_table('users')
