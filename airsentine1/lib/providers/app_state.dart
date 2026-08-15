@@ -1,9 +1,11 @@
 import 'package:airsentine1/data/aqi_repository.dart';
+import 'package:airsentine1/data/local_db.dart';
 import 'package:airsentine1/data/sample_data.dart';
 import 'package:airsentine1/models/heatmap_point.dart';
 import 'package:airsentine1/models/station.dart';
 import 'package:airsentine1/services/api_service.dart';
 import 'package:airsentine1/services/preferences_service.dart';
+import 'package:airsentine1/services/sync_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,29 +13,52 @@ final preferencesServiceProvider = Provider<PreferencesService>((ref) {
   throw UnimplementedError('PreferencesService has not been initialized.');
 });
 
+/// Local SQLite Database Provider
+final localDbProvider = Provider<LocalDb>((ref) {
+  return LocalDb.instance;
+});
+
 /// API Service Provider
 final apiServiceProvider = Provider<ApiService>((ref) {
   return ApiService();
 });
 
-/// AQI Repository Provider
-final aqiRepositoryProvider = Provider<AqiRepository>((ref) {
-  return AqiRepository(apiService: ref.watch(apiServiceProvider));
+/// Offline-First Sync Service Provider
+final syncServiceProvider = Provider<SyncService>((ref) {
+  return SyncService(
+    localDb: ref.watch(localDbProvider),
+    apiService: ref.watch(apiServiceProvider),
+  );
 });
 
-/// Async Stations Provider (Live API + loading/error states)
+/// Stream of un-synced pending items count
+final pendingSyncCountProvider = StreamProvider<int>((ref) {
+  final syncService = ref.watch(syncServiceProvider);
+  return syncService.pendingCountStream;
+});
+
+/// AQI Repository Provider (integrates LocalDb + ApiService + SyncService)
+final aqiRepositoryProvider = Provider<AqiRepository>((ref) {
+  return AqiRepository(
+    apiService: ref.watch(apiServiceProvider),
+    localDb: ref.watch(localDbProvider),
+    syncService: ref.watch(syncServiceProvider),
+  );
+});
+
+/// Async Stations Provider (Local first + live API background refresh)
 final stationsAsyncProvider = FutureProvider<List<MonitoringStation>>((ref) async {
   final repository = ref.watch(aqiRepositoryProvider);
   return await repository.getStations();
 });
 
-/// Async Heatmap Points Provider (Live API + loading/error states)
+/// Async Heatmap Points Provider (Local cached points first + background refresh)
 final heatmapAsyncProvider = FutureProvider<List<HeatmapPoint>>((ref) async {
   final repository = ref.watch(aqiRepositoryProvider);
   return await repository.fetchHeatmap();
 });
 
-/// Synchronous List of available monitoring stations (subscribes to stationsAsyncProvider with fallback)
+/// Synchronous List of available monitoring stations
 final stationsListProvider = Provider<List<MonitoringStation>>((ref) {
   final asyncStations = ref.watch(stationsAsyncProvider);
   return asyncStations.maybeWhen(

@@ -3,7 +3,9 @@ import 'package:airsentine1/models/station.dart';
 import 'package:airsentine1/providers/app_state.dart';
 import 'package:airsentine1/widgets/logo.dart';
 import 'package:airsentine1/widgets/motion.dart';
+import 'package:airsentine1/widgets/sync_status_badge.dart';
 import 'package:flutter/material.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -68,8 +70,13 @@ class AirSentinelHeader extends ConsumerWidget implements PreferredSizeWidget {
                       _buildThemeSwitcher(context, ref, themeMode, isDark),
                       const SizedBox(width: 6),
 
+                      // Offline-First Sync Status Indicator Badge
+                      const SyncStatusBadge(),
+                      const SizedBox(width: 6),
+
                       // AI Copilot CTA
                       _buildAiCopilotCta(context, isCompact),
+
                     ],
                   ),
                 ),

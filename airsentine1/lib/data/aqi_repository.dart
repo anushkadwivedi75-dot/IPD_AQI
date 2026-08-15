@@ -1,33 +1,106 @@
+import 'package:airsentine1/data/local_db.dart';
 import 'package:airsentine1/data/sample_data.dart';
 import 'package:airsentine1/models/heatmap_point.dart';
 import 'package:airsentine1/models/reading.dart';
 import 'package:airsentine1/models/site_history_response.dart';
 import 'package:airsentine1/models/station.dart';
 import 'package:airsentine1/services/api_service.dart';
+import 'package:airsentine1/services/sync_service.dart';
 import 'package:intl/intl.dart';
 
 class AqiRepository {
   final ApiService _apiService;
+  final LocalDb _localDb;
+  final SyncService _syncService;
 
-  AqiRepository({ApiService? apiService})
-      : _apiService = apiService ?? ApiService();
+  AqiRepository({
+    ApiService? apiService,
+    LocalDb? localDb,
+    SyncService? syncService,
+  })  : _apiService = apiService ?? ApiService(),
+        _localDb = localDb ?? LocalDb.instance,
+        _syncService = syncService ?? SyncService();
 
-  /// Fetch heatmap aggregated points from backend
+  /// Writes always go to local_db first with is_synced=0,
+  /// followed by an immediate sync attempt if online.
+  Future<void> saveReading(Reading reading) async {
+    await _localDb.insertLocalReading(reading, isSynced: false);
+    await _syncService.updatePendingCount();
+    // Attempt immediate sync
+    await _syncService.syncPendingData();
+  }
+
+  /// Bulk post readings: saves to local_db first then syncs
+  Future<BatchReadingResponse> postReadingsBatch(List<Reading> readings) async {
+    for (final r in readings) {
+      await _localDb.insertLocalReading(r, isSynced: false);
+    }
+    await _syncService.updatePendingCount();
+    final syncedCount = await _syncService.syncPendingData();
+    return BatchReadingResponse(
+      inserted: readings.length,
+      status: syncedCount == readings.length ? 'success' : 'pending_offline',
+    );
+  }
+
+  /// Fetch heatmap points: loads from cached SQLite first,
+  /// then triggers background API refresh if online.
   Future<List<HeatmapPoint>> fetchHeatmap({
     double minLat = 18.8,
     double minLng = 72.7,
     double maxLat = 19.2,
     double maxLng = 73.0,
   }) async {
-    return await _apiService.fetchHeatmap(
+    // 1. Try local cache first
+    final localPoints = await _localDb.getCachedHeatmap();
+
+    // 2. Trigger background refresh from network
+    _refreshHeatmapBackground(
       minLat: minLat,
       minLng: minLng,
       maxLat: maxLat,
       maxLng: maxLng,
     );
+
+    if (localPoints.isNotEmpty) {
+      return localPoints;
+    }
+
+    // 3. Fallback to API directly if local cache empty
+    try {
+      final remotePoints = await _apiService.fetchHeatmap(
+        minLat: minLat,
+        minLng: minLng,
+        maxLat: maxLat,
+        maxLng: maxLng,
+      );
+      await _localDb.saveCachedHeatmap(remotePoints);
+      return remotePoints;
+    } catch (_) {
+      return [];
+    }
   }
 
-  /// Fetch site history readings from backend
+  Future<void> _refreshHeatmapBackground({
+    required double minLat,
+    required double minLng,
+    required double maxLat,
+    required double maxLng,
+  }) async {
+    try {
+      final remotePoints = await _apiService.fetchHeatmap(
+        minLat: minLat,
+        minLng: minLng,
+        maxLat: maxLat,
+        maxLng: maxLng,
+      );
+      await _localDb.saveCachedHeatmap(remotePoints);
+    } catch (_) {
+      // Ignore background network errors
+    }
+  }
+
+  /// Fetch site history readings
   Future<SiteHistoryResponse> fetchSiteHistory(
     String siteId, {
     int hours = 24,
@@ -35,19 +108,12 @@ class AqiRepository {
     return await _apiService.fetchSiteHistory(siteId, hours: hours);
   }
 
-  /// Post batch readings to backend
-  Future<BatchReadingResponse> postReadingsBatch(List<Reading> readings) async {
-    return await _apiService.postReadingsBatch(readings);
-  }
-
-  /// Fetch monitoring stations, enriching with live API readings when available,
-  /// or falling back smoothly to sample_data stations.
+  /// Get monitoring stations: loads local cached stations first,
+  /// then refreshes from backend API in background.
   Future<List<MonitoringStation>> getStations() async {
-    // Start with fallback sample stations list
     final List<MonitoringStation> updatedStations = List.from(stations);
 
     try {
-      // Known backend site IDs mapping to stations
       final siteMappings = <String, String>{
         'ad7efa75-a8bb-4b7f-917b-1314b272fa4b': 'station-mumbai-bkc',
         '3a0c762a-13ba-4b27-9b56-c24be1dba7ab': 'station-mumbai-colaba',
@@ -78,7 +144,6 @@ class AqiRepository {
             if (index != -1) {
               final orig = updatedStations[index];
 
-              // Update pollutants with live PM2.5 & AQI
               final updatedPollutants = orig.pollutants.map((p) {
                 if (p.code == 'PM2.5') {
                   return PollutantDetail(
@@ -122,11 +187,17 @@ class AqiRepository {
             }
           }
         } catch (_) {
-          // Individual site fetch fallback
+          // Individual site fallback
         }
       }
+
+      await _localDb.saveCachedSites(updatedStations);
     } catch (_) {
-      // General API error fallback to static stations
+      // General API error: try retrieving cached sites from localDb
+      final cached = await _localDb.getCachedSites();
+      if (cached.isNotEmpty) {
+        return cached;
+      }
     }
 
     return updatedStations;
