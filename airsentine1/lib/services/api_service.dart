@@ -1,3 +1,4 @@
+import 'package:airsentine1/models/alert.dart';
 import 'package:airsentine1/models/heatmap_point.dart';
 import 'package:airsentine1/models/reading.dart';
 import 'package:airsentine1/models/site_history_response.dart';
@@ -84,4 +85,36 @@ class ApiService {
       rethrow;
     }
   }
+
+  /// 4. GET /api/alerts?site_id=
+  Future<List<AppAlert>> fetchAlerts({String? siteId}) async {
+    try {
+      final response = await _dio.get(
+        '/api/alerts',
+        queryParameters: siteId != null ? {'site_id': siteId} : null,
+
+      );
+
+      final List<dynamic> data = response.data as List<dynamic>;
+      return data.map((json) => AppAlert.fromJson(json as Map<String, dynamic>)).toList();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// 5. POST /api/alerts (trigger analysis)
+  Future<List<AppAlert>> triggerAlertAnalysis(String siteId) async {
+    try {
+      final response = await _dio.post(
+        '/api/alerts',
+        data: {'site_id': siteId},
+      );
+
+      final List<dynamic> data = response.data as List<dynamic>;
+      return data.map((json) => AppAlert.fromJson(json as Map<String, dynamic>)).toList();
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
+

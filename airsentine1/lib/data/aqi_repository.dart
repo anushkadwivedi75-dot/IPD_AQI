@@ -1,7 +1,9 @@
 import 'package:airsentine1/data/local_db.dart';
 import 'package:airsentine1/data/sample_data.dart';
+import 'package:airsentine1/models/alert.dart';
 import 'package:airsentine1/models/heatmap_point.dart';
 import 'package:airsentine1/models/reading.dart';
+
 import 'package:airsentine1/models/site_history_response.dart';
 import 'package:airsentine1/models/station.dart';
 import 'package:airsentine1/services/api_service.dart';
@@ -202,4 +204,31 @@ class AqiRepository {
 
     return updatedStations;
   }
+
+  /// Fetch alerts for site (prefers local DB cache with API refresh)
+  Future<List<AppAlert>> fetchAlerts({String? siteId}) async {
+    try {
+      final remoteAlerts = await _apiService.fetchAlerts(siteId: siteId);
+      for (final a in remoteAlerts) {
+        await _localDb.insertReceivedAlert(a);
+      }
+      return remoteAlerts;
+    } catch (_) {
+      return await _localDb.getReceivedAlertsForSite(siteId);
+    }
+  }
+
+  /// Trigger spatial analysis on server for site
+  Future<List<AppAlert>> triggerAlertAnalysis(String siteId) async {
+    try {
+      final alerts = await _apiService.triggerAlertAnalysis(siteId);
+      for (final a in alerts) {
+        await _localDb.insertReceivedAlert(a);
+      }
+      return alerts;
+    } catch (_) {
+      return await _localDb.getReceivedAlertsForSite(siteId);
+    }
+  }
 }
+

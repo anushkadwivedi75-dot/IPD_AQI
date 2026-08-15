@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'package:airsentine1/data/sample_data.dart';
+import 'package:airsentine1/models/alert.dart';
 import 'package:airsentine1/models/heatmap_point.dart';
 import 'package:airsentine1/models/reading.dart';
 import 'package:airsentine1/models/station.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+
 
 
 class LocalDb {
@@ -255,5 +258,60 @@ class LocalDb {
     }
     return cachedList;
   }
+
+  /// Insert received alert into local SQLite DB
+  Future<void> insertReceivedAlert(AppAlert alert) async {
+    final db = await database;
+    await db.insert(
+      'received_alerts',
+      {
+        'id': alert.id,
+        'site_id': alert.siteId,
+        'type': alert.type,
+        'severity': alert.severity,
+        'evidence_json': alert.evidence != null ? jsonEncode(alert.evidence) : null,
+        'received_at': (alert.receivedAt ?? DateTime.now()).toIso8601String(),
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  /// Query received alerts for site from local DB
+  Future<List<AppAlert>> getReceivedAlertsForSite(String? siteId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> rows;
+    if (siteId != null) {
+      rows = await db.query(
+        'received_alerts',
+        where: 'site_id = ?',
+        whereArgs: [siteId],
+        orderBy: 'received_at DESC',
+      );
+    } else {
+      rows = await db.query(
+        'received_alerts',
+        orderBy: 'received_at DESC',
+      );
+    }
+
+    return rows.map((row) {
+      Map<String, dynamic>? evidence;
+      if (row['evidence_json'] != null) {
+        try {
+          evidence = jsonDecode(row['evidence_json'] as String) as Map<String, dynamic>;
+        } catch (_) {}
+      }
+
+      return AppAlert(
+        id: row['id'] as String,
+        siteId: row['site_id'] as String?,
+        type: row['type'] as String?,
+        severity: row['severity'] as int?,
+        evidence: evidence,
+        receivedAt: row['received_at'] != null ? DateTime.parse(row['received_at'] as String) : null,
+      );
+    }).toList();
+  }
 }
+
 

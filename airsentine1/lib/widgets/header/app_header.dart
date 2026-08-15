@@ -1,10 +1,12 @@
 import 'dart:ui';
 import 'package:airsentine1/models/station.dart';
 import 'package:airsentine1/providers/app_state.dart';
+import 'package:airsentine1/widgets/community_alert_banner.dart';
 import 'package:airsentine1/widgets/logo.dart';
 import 'package:airsentine1/widgets/motion.dart';
 import 'package:airsentine1/widgets/sync_status_badge.dart';
 import 'package:flutter/material.dart';
+
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -30,6 +32,9 @@ class AirSentinelHeader extends ConsumerWidget implements PreferredSizeWidget {
         ? const Color(0xFF141210).withValues(alpha: 0.88)
         : const Color(0xFFFAF7F2).withValues(alpha: 0.88);
 
+    final alertsAsync = ref.watch(activeSiteAlertsProvider);
+    final activeAlerts = alertsAsync.maybeWhen(data: (a) => a, orElse: () => []);
+
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
@@ -40,8 +45,13 @@ class AirSentinelHeader extends ConsumerWidget implements PreferredSizeWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // 1. Conditional Alert Banner (Shown when AQI >= alertThreshold)
+                // 1. Conditional Community / Tamper Alerts Banner
+                if (activeAlerts.isNotEmpty)
+                  CommunityAlertBanner(alert: activeAlerts.first),
+
+                // 2. Conditional Alert Banner (Shown when AQI >= alertThreshold)
                 if (isAlertActive) _buildConditionalAlertBar(context, station, alertThreshold),
+
 
                 // 2. Main Sticky Header Bar
                 Padding(

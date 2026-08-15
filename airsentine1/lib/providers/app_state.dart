@@ -1,8 +1,10 @@
 import 'package:airsentine1/data/aqi_repository.dart';
 import 'package:airsentine1/data/local_db.dart';
 import 'package:airsentine1/data/sample_data.dart';
+import 'package:airsentine1/models/alert.dart';
 import 'package:airsentine1/models/heatmap_point.dart';
 import 'package:airsentine1/models/station.dart';
+import 'package:airsentine1/services/alert_service.dart';
 import 'package:airsentine1/services/api_service.dart';
 import 'package:airsentine1/services/preferences_service.dart';
 import 'package:airsentine1/services/sync_service.dart';
@@ -31,11 +33,29 @@ final syncServiceProvider = Provider<SyncService>((ref) {
   );
 });
 
+/// Alert Service Provider
+final alertServiceProvider = Provider<AlertService>((ref) {
+  final service = AlertService(
+    apiService: ref.watch(apiServiceProvider),
+    localDb: ref.watch(localDbProvider),
+  );
+  service.startPolling();
+  ref.onDispose(() => service.dispose());
+  return service;
+});
+
+/// Active Site Alerts Stream Provider
+final activeSiteAlertsProvider = StreamProvider<List<AppAlert>>((ref) {
+  final alertService = ref.watch(alertServiceProvider);
+  return alertService.alertsStream;
+});
+
 /// Stream of un-synced pending items count
 final pendingSyncCountProvider = StreamProvider<int>((ref) {
   final syncService = ref.watch(syncServiceProvider);
   return syncService.pendingCountStream;
 });
+
 
 /// AQI Repository Provider (integrates LocalDb + ApiService + SyncService)
 final aqiRepositoryProvider = Provider<AqiRepository>((ref) {
