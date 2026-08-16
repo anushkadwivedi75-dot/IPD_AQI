@@ -4,10 +4,9 @@ import 'package:airsentine1/models/alert.dart';
 import 'package:airsentine1/models/heatmap_point.dart';
 import 'package:airsentine1/models/reading.dart';
 import 'package:airsentine1/models/station.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-
-
 
 class LocalDb {
   static final LocalDb instance = LocalDb._internal();
@@ -17,21 +16,27 @@ class LocalDb {
 
   factory LocalDb() => instance;
 
-  Future<Database> get database async {
+  Future<Database?> get database async {
+    if (kIsWeb) return null;
     if (_database != null) return _database!;
     _database = await _initDb();
     return _database!;
   }
 
-  Future<Database> _initDb() async {
-    final dbPath = await getDatabasesPath();
-    final pathStr = join(dbPath, 'airsentine1_local.db');
+  Future<Database?> _initDb() async {
+    if (kIsWeb) return null;
+    try {
+      final dbPath = await getDatabasesPath();
+      final pathStr = join(dbPath, 'airsentine1_local.db');
 
-    return await openDatabase(
-      pathStr,
-      version: 1,
-      onCreate: _createTables,
-    );
+      return await openDatabase(
+        pathStr,
+        version: 1,
+        onCreate: _createTables,
+      );
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> _createTables(Database db, int version) async {
@@ -108,6 +113,7 @@ class LocalDb {
   /// Insert a reading into local_readings
   Future<int> insertLocalReading(Reading reading, {bool isSynced = false}) async {
     final db = await database;
+    if (db == null) return 0;
     return await db.insert(
       'local_readings',
       {
@@ -115,7 +121,6 @@ class LocalDb {
         if (reading.aqi != null) 'aqi': reading.aqi,
         if (reading.pm25 != null) 'pm25': reading.pm25,
         if (reading.humidity != null) 'humidity': reading.humidity,
-
         'lat': reading.lat,
         'lng': reading.lng,
         'recorded_at': (reading.recordedAt ?? DateTime.now()).toIso8601String(),
@@ -128,6 +133,7 @@ class LocalDb {
   /// Query all un-synced readings
   Future<List<Map<String, dynamic>>> getUnsyncedReadingsData() async {
     final db = await database;
+    if (db == null) return [];
     return await db.query(
       'local_readings',
       where: 'is_synced = ?',
@@ -157,6 +163,7 @@ class LocalDb {
   Future<void> markReadingsSynced(List<int> ids) async {
     if (ids.isEmpty) return;
     final db = await database;
+    if (db == null) return;
     final idListStr = ids.join(',');
     await db.rawUpdate(
       'UPDATE local_readings SET is_synced = 1 WHERE id IN ($idListStr)',
@@ -166,6 +173,7 @@ class LocalDb {
   /// Count un-synced readings
   Future<int> getPendingSyncCount() async {
     final db = await database;
+    if (db == null) return 0;
     final result = await db.rawQuery(
       'SELECT COUNT(*) as cnt FROM local_readings WHERE is_synced = 0',
     );
@@ -178,6 +186,7 @@ class LocalDb {
   /// Cache heatmap points
   Future<void> saveCachedHeatmap(List<HeatmapPoint> points) async {
     final db = await database;
+    if (db == null) return;
     await db.transaction((txn) async {
       await txn.delete('cached_heatmap');
       final nowStr = DateTime.now().toIso8601String();
@@ -196,16 +205,18 @@ class LocalDb {
   /// Retrieve cached heatmap points
   Future<List<HeatmapPoint>> getCachedHeatmap() async {
     final db = await database;
+    if (db == null) return [];
     final rows = await db.query('cached_heatmap');
     return rows.map((row) => HeatmapPoint.fromJson(row)).toList();
   }
 
   /// Cache sites
-  Future<void> saveCachedSites(List<MonitoringStation> stations) async {
+  Future<void> saveCachedSites(List<MonitoringStation> stationsList) async {
     final db = await database;
+    if (db == null) return;
     await db.transaction((txn) async {
       final nowStr = DateTime.now().toIso8601String();
-      for (final s in stations) {
+      for (final s in stationsList) {
         await txn.insert(
           'cached_sites',
           {
@@ -225,6 +236,7 @@ class LocalDb {
   /// Retrieve cached monitoring stations
   Future<List<MonitoringStation>> getCachedSites() async {
     final db = await database;
+    if (db == null) return [];
     final rows = await db.query('cached_sites');
     if (rows.isEmpty) return [];
 
@@ -262,6 +274,7 @@ class LocalDb {
   /// Insert received alert into local SQLite DB
   Future<void> insertReceivedAlert(AppAlert alert) async {
     final db = await database;
+    if (db == null) return;
     await db.insert(
       'received_alerts',
       {
@@ -279,6 +292,7 @@ class LocalDb {
   /// Query received alerts for site from local DB
   Future<List<AppAlert>> getReceivedAlertsForSite(String? siteId) async {
     final db = await database;
+    if (db == null) return [];
     final List<Map<String, dynamic>> rows;
     if (siteId != null) {
       rows = await db.query(
@@ -313,5 +327,3 @@ class LocalDb {
     }).toList();
   }
 }
-
-

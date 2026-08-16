@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:airsentine1/app/navigation/responsive_scaffold.dart';
 import 'package:airsentine1/features/ai_assistant/presentation/ai_assistant_page.dart';
 import 'package:airsentine1/features/dashboard/presentation/dashboard_page.dart';
