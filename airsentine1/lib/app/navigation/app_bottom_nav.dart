@@ -24,8 +24,14 @@ class AppBottomNav extends StatelessWidget {
           NavigationDestination(
             icon: Icon(Icons.dashboard_outlined),
             selectedIcon: Icon(Icons.dashboard, color: Color(0xFF0F9D58)),
-            label: 'Dashboard',
-            tooltip: 'Navigate to Dashboard',
+            label: 'Overview',
+            tooltip: 'Navigate to Regional Overview',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.bluetooth_audio_outlined),
+            selectedIcon: Icon(Icons.bluetooth_audio, color: Color(0xFF007791)),
+            label: 'Personal',
+            tooltip: 'Navigate to Personal Telemetry Dashboard',
           ),
           NavigationDestination(
             icon: Icon(Icons.map_outlined),

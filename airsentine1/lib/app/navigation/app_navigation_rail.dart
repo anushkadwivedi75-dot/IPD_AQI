@@ -28,7 +28,12 @@ class AppNavigationRail extends StatelessWidget {
         NavigationRailDestination(
           icon: Icon(Icons.dashboard_outlined),
           selectedIcon: Icon(Icons.dashboard),
-          label: Text("Home"),
+          label: Text("Overview"),
+        ),
+        NavigationRailDestination(
+          icon: Icon(Icons.bluetooth_audio_outlined),
+          selectedIcon: Icon(Icons.bluetooth_audio),
+          label: Text("Personal"),
         ),
         NavigationRailDestination(
           icon: Icon(Icons.map_outlined),

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:airsentine1/data/sample_data.dart';
 import 'package:airsentine1/models/alert.dart';
 import 'package:airsentine1/models/heatmap_point.dart';
+import 'package:airsentine1/models/personal_telemetry.dart';
 import 'package:airsentine1/models/reading.dart';
 import 'package:airsentine1/models/station.dart';
 import 'package:flutter/foundation.dart';
@@ -289,6 +290,28 @@ class LocalDb {
     );
   }
 
+  // 6. personal_telemetry
+  Future<void> _createPersonalTelemetryTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS personal_telemetry (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT,
+        device_id TEXT,
+        device_name TEXT,
+        aqi INTEGER,
+        pm25 REAL,
+        pm10 REAL,
+        temperature REAL,
+        humidity REAL,
+        heart_rate INTEGER,
+        lat REAL,
+        lng REAL,
+        timestamp TEXT,
+        is_synced INTEGER DEFAULT 0
+      )
+    ''');
+  }
+
   /// Query received alerts for site from local DB
   Future<List<AppAlert>> getReceivedAlertsForSite(String? siteId) async {
     final db = await database;
@@ -325,5 +348,53 @@ class LocalDb {
         receivedAt: row['received_at'] != null ? DateTime.parse(row['received_at'] as String) : null,
       );
     }).toList();
+  }
+
+  // --- PERSONAL TELEMETRY METHODS ---
+
+  Future<int> insertPersonalTelemetry(PersonalTelemetry telemetry) async {
+    final db = await database;
+    if (db == null) return 0;
+    await _createPersonalTelemetryTable(db);
+    return await db.insert(
+      'personal_telemetry',
+      telemetry.toJson(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<PersonalTelemetry>> getUnsyncedPersonalTelemetry() async {
+    final db = await database;
+    if (db == null) return [];
+    await _createPersonalTelemetryTable(db);
+    final rows = await db.query(
+      'personal_telemetry',
+      where: 'is_synced = ?',
+      whereArgs: [0],
+      orderBy: 'id ASC',
+    );
+    return rows.map((r) => PersonalTelemetry.fromJson(r)).toList();
+  }
+
+  Future<void> markPersonalTelemetrySynced(List<int> ids) async {
+    if (ids.isEmpty) return;
+    final db = await database;
+    if (db == null) return;
+    final idListStr = ids.join(',');
+    await db.rawUpdate(
+      'UPDATE personal_telemetry SET is_synced = 1 WHERE id IN ($idListStr)',
+    );
+  }
+
+  Future<List<PersonalTelemetry>> getPersonalTelemetryHistory({int limit = 50}) async {
+    final db = await database;
+    if (db == null) return [];
+    await _createPersonalTelemetryTable(db);
+    final rows = await db.query(
+      'personal_telemetry',
+      orderBy: 'timestamp DESC',
+      limit: limit,
+    );
+    return rows.map((r) => PersonalTelemetry.fromJson(r)).toList();
   }
 }

@@ -156,7 +156,6 @@ class HistoryChart extends StatelessWidget {
                 enabled: true,
                 touchTooltipData: LineTouchTooltipData(
                   getTooltipColor: (spot) => isDark ? const Color(0xFF26231F) : const Color(0xFF0F172A),
-                  tooltipRoundedRadius: 12,
                   tooltipPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   getTooltipItems: (touchedSpots) {
                     return touchedSpots.map((spot) {
