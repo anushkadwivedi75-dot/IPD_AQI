@@ -116,5 +116,45 @@ class ApiService {
       rethrow;
     }
   }
+
+  /// 6. POST /api/auth/login
+  Future<Map<String, dynamic>> loginUser({required String email, required String password}) async {
+    try {
+      final response = await _dio.post(
+        '/api/auth/login',
+        data: {'email': email, 'password': password},
+      );
+      return response.data as Map<String, dynamic>;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// 7. POST /api/auth/register
+  Future<Map<String, dynamic>> registerUser({required String name, required String email, required String password}) async {
+    try {
+      final response = await _dio.post(
+        '/api/auth/register',
+        data: {'name': name, 'email': email, 'password': password},
+      );
+      return response.data as Map<String, dynamic>;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// 8. POST /api/telemetry/upload
+  Future<Map<String, dynamic>> postPersonalTelemetryBatch(List<Map<String, dynamic>> telemetryData) async {
+    try {
+      final response = await _dio.post(
+        '/api/telemetry/upload',
+        data: telemetryData,
+      );
+      return response.data as Map<String, dynamic>;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
+
 

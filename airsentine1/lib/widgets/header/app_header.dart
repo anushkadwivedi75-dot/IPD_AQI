@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:airsentine1/features/ai_assistant/presentation/ai_assistant_page.dart';
 import 'package:airsentine1/models/station.dart';
 import 'package:airsentine1/providers/app_state.dart';
+import 'package:airsentine1/providers/auth_provider.dart';
 import 'package:airsentine1/widgets/community_alert_banner.dart';
 import 'package:airsentine1/widgets/logo.dart';
 import 'package:airsentine1/widgets/motion.dart';
@@ -87,7 +88,10 @@ class AirSentinelHeader extends ConsumerWidget implements PreferredSizeWidget {
 
                       // AI Copilot CTA
                       _buildAiCopilotCta(context, isCompact),
+                      const SizedBox(width: 6),
 
+                      // User Auth Profile CTA
+                      _buildUserAvatarBtn(context, ref, isDark),
                     ],
                   ),
                 ),
@@ -342,4 +346,55 @@ class AirSentinelHeader extends ConsumerWidget implements PreferredSizeWidget {
       ),
     );
   }
+
+  /// User Profile Avatar / Login CTA
+  Widget _buildUserAvatarBtn(BuildContext context, WidgetRef ref, bool isDark) {
+    final authState = ref.watch(authProvider);
+    final user = authState.user;
+
+    return Semantics(
+      button: true,
+      label: user != null ? 'Open Personal Dashboard for ${user.name}' : 'Sign in to AirSentinel',
+      child: Tooltip(
+        message: user != null ? 'Personal Dashboard (${user.name})' : 'Sign In',
+        child: InkWell(
+          onTap: () {
+            if (user != null) {
+              context.go('/personal-dashboard');
+            } else {
+              context.go('/login');
+            }
+          },
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: user != null
+                  ? const Color(0xFF007791)
+                  : (isDark ? const Color(0xFF28231E) : const Color(0xFFEBE5DF)),
+              shape: BoxShape.circle,
+            ),
+            child: user != null
+                ? Center(
+                    child: Text(
+                      user.name[0].toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  )
+                : Icon(
+                    Icons.person_outline,
+                    color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                    size: 18,
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
 }
+

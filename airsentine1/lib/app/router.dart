@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:airsentine1/app/navigation/responsive_scaffold.dart';
 import 'package:airsentine1/features/ai_assistant/presentation/ai_assistant_page.dart';
+import 'package:airsentine1/features/auth/presentation/login_page.dart';
+import 'package:airsentine1/features/auth/presentation/register_page.dart';
 import 'package:airsentine1/features/dashboard/presentation/dashboard_page.dart';
 import 'package:airsentine1/features/history/presentation/history_page.dart';
 import 'package:airsentine1/features/map/presentation/map_page.dart';
+import 'package:airsentine1/features/personal_dashboard/presentation/personal_dashboard_page.dart';
 import 'package:airsentine1/features/reports/presentation/reports_page.dart';
 import 'package:airsentine1/features/settings/presentation/settings_page.dart';
 import 'package:airsentine1/features/station_detail/presentation/station_detail_page.dart';
@@ -26,6 +29,11 @@ final appRouter = GoRouter(
           builder: (context, state) => const DashboardPage(),
         ),
         GoRoute(
+          name: 'personal-dashboard',
+          path: '/personal-dashboard',
+          builder: (context, state) => const PersonalDashboardPage(),
+        ),
+        GoRoute(
           name: 'map',
           path: '/map',
           builder: (context, state) => const MapPage(),
@@ -46,6 +54,17 @@ final appRouter = GoRouter(
           builder: (context, state) => const SettingsPage(),
         ),
       ],
+    ),
+    // Auth routes
+    GoRoute(
+      name: 'login',
+      path: '/login',
+      builder: (context, state) => const LoginPage(),
+    ),
+    GoRoute(
+      name: 'register',
+      path: '/register',
+      builder: (context, state) => const RegisterPage(),
     ),
     // Modal routes
     GoRoute(

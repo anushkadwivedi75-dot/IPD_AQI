@@ -47,4 +47,8 @@ class PreferencesService {
   Future<void> setIsDarkMode(bool value) async {
     await _preferences.setBool(_isDarkModeKey, value);
   }
+
+  String? getString(String key) => _preferences.getString(key);
+  Future<void> setString(String key, String value) async => await _preferences.setString(key, value);
+  Future<void> remove(String key) async => await _preferences.remove(key);
 }

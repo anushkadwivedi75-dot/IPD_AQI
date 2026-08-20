@@ -58,8 +58,19 @@ class SyncService {
         await _localDb.markReadingsSynced(idsToMark);
       }
 
+      // Sync personal Bluetooth telemetry
+      final unsyncedTelemetry = await _localDb.getUnsyncedPersonalTelemetry();
+      if (unsyncedTelemetry.isNotEmpty) {
+        try {
+          final payload = unsyncedTelemetry.map((t) => t.toJson()).toList();
+          await _apiService.postPersonalTelemetryBatch(payload);
+          final telemetryIds = unsyncedTelemetry.where((t) => t.id != null).map((t) => t.id!).toList();
+          await _localDb.markPersonalTelemetrySynced(telemetryIds);
+        } catch (_) {}
+      }
+
       await updatePendingCount();
-      return unsynced.length;
+      return unsynced.length + unsyncedTelemetry.length;
     } catch (_) {
       await updatePendingCount();
       return 0;

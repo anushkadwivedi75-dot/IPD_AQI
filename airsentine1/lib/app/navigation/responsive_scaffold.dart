@@ -14,6 +14,7 @@ class ResponsiveScaffold extends StatelessWidget {
 
   static const _locations = <String>[
     '/',
+    '/personal-dashboard',
     '/map',
     '/reports',
     '/history',
@@ -21,10 +22,11 @@ class ResponsiveScaffold extends StatelessWidget {
   ];
 
   int _selectedIndex(String location) {
-    if (location.startsWith('/map')) return 1;
-    if (location.startsWith('/reports')) return 2;
-    if (location.startsWith('/history')) return 3;
-    if (location.startsWith('/settings')) return 4;
+    if (location.startsWith('/personal-dashboard')) return 1;
+    if (location.startsWith('/map')) return 2;
+    if (location.startsWith('/reports')) return 3;
+    if (location.startsWith('/history')) return 4;
+    if (location.startsWith('/settings')) return 5;
     return 0;
   }
 
