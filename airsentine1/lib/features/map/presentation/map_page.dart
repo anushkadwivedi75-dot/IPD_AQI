@@ -66,7 +66,12 @@ class _MapPageState extends ConsumerState<MapPage> {
           children: [
             Icon(Icons.map_outlined, color: primaryColor),
             const SizedBox(width: 8),
-            const Text('CPCB INTERACTIVE AQI MAP'),
+            const Expanded(
+              child: Text(
+                'CPCB INTERACTIVE AQI MAP',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
       ),
@@ -101,10 +106,14 @@ class _MapPageState extends ConsumerState<MapPage> {
       ),
       child: Column(
         children: [
-          Row(
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               // Accessible Search Input Field
-              Expanded(
+              ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 250, maxWidth: 450),
                 child: Semantics(
                   label: 'Search CPCB Stations by Name, City, or Area',
                   hint: 'Type a city name like Delhi, Mumbai, or Bengaluru',
@@ -141,7 +150,6 @@ class _MapPageState extends ConsumerState<MapPage> {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
 
               // Mode Toggle (Map View vs Accessible List View)
               Semantics(
@@ -186,7 +194,9 @@ class _MapPageState extends ConsumerState<MapPage> {
           const SizedBox(height: 10),
 
           // Connected Pill Buttons for Map Layers (AQI Layer / PM2.5 / Thermal)
-          Row(
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            runSpacing: 8,
             children: [
               const Text(
                 'LAYER:',
@@ -577,8 +587,8 @@ class _MapPageState extends ConsumerState<MapPage> {
             borderRadius: BorderRadius.circular(14),
             boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8)],
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               const Icon(Icons.my_location, color: Colors.cyanAccent, size: 14),
               const SizedBox(width: 8),

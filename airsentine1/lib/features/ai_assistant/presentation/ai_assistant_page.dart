@@ -245,13 +245,13 @@ class _AiAssistantPageState extends ConsumerState<AiAssistantPage> {
             boxShadow: const [
               BoxShadow(color: Colors.black45, blurRadius: 16, offset: Offset(0, 6)),
             ],
-            border: Border.all(color: Colors.emeraldAccent.withValues(alpha: 0.6), width: 1.5),
+            border: Border.all(color: Colors.tealAccent.withValues(alpha: 0.6), width: 1.5),
           ),
           child: Row(
             children: [
-              const PulsingDot(color: Colors.emeraldAccent, size: 8),
+              const PulsingDot(color: Colors.tealAccent, size: 8),
               const SizedBox(width: 8),
-              const Icon(Icons.auto_awesome, color: Colors.emeraldAccent, size: 18),
+              const Icon(Icons.auto_awesome, color: Colors.tealAccent, size: 18),
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
@@ -315,7 +315,7 @@ class _AiAssistantPageState extends ConsumerState<AiAssistantPage> {
                         color: primaryColor.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.auto_awesome, color: Colors.emeraldAccent, size: 18),
+                      child: const Icon(Icons.auto_awesome, color: Colors.tealAccent, size: 18),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -347,7 +347,7 @@ class _AiAssistantPageState extends ConsumerState<AiAssistantPage> {
 
                     // Size controls & Close button
                     IconButton(
-                      icon: Icon(Icons.crop_3_2, color: _sizeMode == WindowSizeMode.compact ? Colors.emeraldAccent : Colors.white70, size: 18),
+                      icon: Icon(Icons.crop_3_2, color: _sizeMode == WindowSizeMode.compact ? Colors.tealAccent : Colors.white70, size: 18),
                       tooltip: 'Compact Window Size',
                       onPressed: () {
                         setState(() {
@@ -356,7 +356,7 @@ class _AiAssistantPageState extends ConsumerState<AiAssistantPage> {
                       },
                     ),
                     IconButton(
-                      icon: Icon(Icons.open_in_full, color: _sizeMode == WindowSizeMode.expanded ? Colors.emeraldAccent : Colors.white70, size: 18),
+                      icon: Icon(Icons.open_in_full, color: _sizeMode == WindowSizeMode.expanded ? Colors.tealAccent : Colors.white70, size: 18),
                       tooltip: 'Expanded Window Size',
                       onPressed: () {
                         setState(() {
