@@ -63,7 +63,12 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           children: [
             Icon(Icons.show_chart_outlined, color: primaryColor),
             const SizedBox(width: 8),
-            const Text('24-HOUR TELEMETRY HISTORY (IST)'),
+            const Expanded(
+              child: Text(
+                '24-HOUR TELEMETRY HISTORY (IST)',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
       ),

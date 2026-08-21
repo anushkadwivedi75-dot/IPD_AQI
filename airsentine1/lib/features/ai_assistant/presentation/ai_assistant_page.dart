@@ -245,6 +245,13 @@ class _AiAssistantPageState extends ConsumerState<AiAssistantPage> {
             boxShadow: const [
               BoxShadow(color: Colors.black45, blurRadius: 16, offset: Offset(0, 6)),
             ],
+            border: Border.all(color: Colors.tealAccent.withValues(alpha: 0.6), width: 1.5),
+          ),
+          child: Row(
+            children: [
+              const PulsingDot(color: Colors.tealAccent, size: 8),
+              const SizedBox(width: 8),
+              const Icon(Icons.auto_awesome, color: Colors.tealAccent, size: 18),
             border: Border.all(color: const Color(0xFF34D399).withValues(alpha: 0.6), width: 1.5),
           ),
           child: Row(
@@ -315,6 +322,7 @@ class _AiAssistantPageState extends ConsumerState<AiAssistantPage> {
                         color: primaryColor.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
                       ),
+                      child: const Icon(Icons.auto_awesome, color: Colors.tealAccent, size: 18),
                       child: const Icon(Icons.auto_awesome, color: Color(0xFF34D399), size: 18),
                     ),
                     const SizedBox(width: 10),

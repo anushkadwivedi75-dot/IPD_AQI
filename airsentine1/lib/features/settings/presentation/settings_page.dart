@@ -149,15 +149,22 @@ class SettingsPage extends ConsumerWidget {
                             value: alertThreshold.toDouble().clamp(50, 400),
                             onChanged: (value) => ref.read(alertThresholdProvider.notifier).setThreshold(value.round()),
                           ),
-                          const Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('50 GOOD', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF00B050))),
-                              Text('100 SAT.', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF7CB342))),
-                              Text('200 MOD.', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFFBC02D))),
-                              Text('300 POOR', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFF57C00))),
-                              Text('400 SEVERE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF70131B))),
-                            ],
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('50 GOOD', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF00B050))),
+                                SizedBox(width: 8),
+                                Text('100 SAT.', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF7CB342))),
+                                SizedBox(width: 8),
+                                Text('200 MOD.', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFFBC02D))),
+                                SizedBox(width: 8),
+                                Text('300 POOR', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFF57C00))),
+                                SizedBox(width: 8),
+                                Text('400 SEVERE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF70131B))),
+                              ],
+                            ),
                           ),
                         ],
                       ),

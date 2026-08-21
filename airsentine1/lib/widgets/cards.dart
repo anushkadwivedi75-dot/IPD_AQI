@@ -32,7 +32,10 @@ class AppCard extends StatelessWidget {
         boxShadow: AppShadows.card,
         border: border ?? Border.all(color: defaultBorderColor, width: 1),
       ),
-      child: child,
+      child: Material(
+        type: MaterialType.transparency,
+        child: child,
+      ),
     );
 
     if (onTap != null) {
@@ -75,7 +78,10 @@ class AppCardLg extends StatelessWidget {
         boxShadow: AppShadows.cardElevated,
         border: Border.all(color: defaultBorderColor, width: 1),
       ),
-      child: child,
+      child: Material(
+        type: MaterialType.transparency,
+        child: child,
+      ),
     );
 
     if (onTap != null) {
@@ -113,9 +119,12 @@ class AppCardAccent extends StatelessWidget {
         borderRadius: AppRadius.xlBorder,
         boxShadow: AppShadows.cardElevated,
       ),
-      child: DefaultTextStyle(
-        style: const TextStyle(color: Colors.white),
-        child: child,
+      child: Material(
+        type: MaterialType.transparency,
+        child: DefaultTextStyle(
+          style: const TextStyle(color: Colors.white),
+          child: child,
+        ),
       ),
     );
 

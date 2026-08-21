@@ -37,8 +37,9 @@ class DashboardPage extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Section Title: Station Quick Picker
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     const SectionTitle(
                       title: 'CPCB Monitoring Stations',
@@ -109,13 +110,16 @@ class DashboardPage extends ConsumerWidget {
                         children: [
                           PulsingDot(color: aqiMeta.dotColor, size: 10),
                           const SizedBox(width: 8),
-                          const Text(
-                            'LIVE CPCB AIR QUALITY INDEX',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.2,
-                              color: Color(0xFF78716C),
+                          const Expanded(
+                            child: Text(
+                              'LIVE CPCB AIR QUALITY INDEX',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.2,
+                                color: Color(0xFF78716C),
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -123,13 +127,16 @@ class DashboardPage extends ConsumerWidget {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          Text(
-                            station.name.toUpperCase(),
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.8,
-                              color: titleTextColor,
+                          Expanded(
+                            child: Text(
+                              station.name.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.8,
+                                color: titleTextColor,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           const SizedBox(width: 6),
@@ -233,16 +240,18 @@ class DashboardPage extends ConsumerWidget {
                   size: 24,
                 ),
                 const SizedBox(width: 10),
-                const Text(
-                  'CPCB AI HEALTH GUIDANCE',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.8,
-                    color: Colors.white,
+                const Expanded(
+                  child: Text(
+                    'CPCB AI HEALTH GUIDANCE',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.8,
+                      color: Colors.white,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Spacer(),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
