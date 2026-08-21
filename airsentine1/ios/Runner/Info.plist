@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>AirSentinel requires Bluetooth access to scan for and connect to telemetry sensor devices.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>AirSentinel requires Bluetooth access to scan for and connect to telemetry sensor devices.</string>
 </dict>
 </plist>
