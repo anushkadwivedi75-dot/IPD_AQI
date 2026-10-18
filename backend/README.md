@@ -15,9 +15,11 @@ backend/
     api/routes/             # API endpoints
     services/               # Business logic services
   alembic/                  # Database migration scripts
+  entrypoint.sh             # Auto Alembic migration + uvicorn entrypoint
   docker-compose.yml        # PostGIS database + FastAPI API service
   requirements.txt          # Python dependencies
   .env.example              # Environment variables template
+  .dockerignore             # Docker build ignore rules
   README.md
 ```
 
@@ -65,9 +67,11 @@ docker compose logs -f api
 
 ---
 
-### Step 3: Run Alembic Database Migrations
+### Step 3: Database Migrations (Automatic & Manual)
 
-To apply database migrations to the PostGIS instance inside the running container:
+Migrations are automatically applied on container startup via `entrypoint.sh`.
+
+To manually apply or re-run database migrations inside the running container:
 
 ```bash
 docker compose exec api alembic upgrade head

@@ -62,34 +62,43 @@ flowchart TD
         SIM["Python BLE Simulator\n(simulator.py - WinRT/Bless)"]
     end
 
-    subgraph Client_App["AirSentine1 (Flutter Cross-Platform Client)"]
+    subgraph Docker_Stack["Docker Compose Orchestration (Full-Stack Containerized)"]
+        subgraph Frontend_Container["Frontend Container (airsentine1_frontend :3000)"]
+            NGINX["Nginx Alpine Web Server\n- SPA HTML5 Fallback Routing\n- Static Asset Caching & Gzip\n- /api Reverse Proxy Gateway"]
+            FLUTTER_WEB["Flutter Web App (CanvasKit/HTML)\nDashboard | Map | AI Copilot | Reports"]
+        end
+
+        subgraph Backend_Container["Backend Container (airsentine1_api :8000)"]
+            API_ROUTER["FastAPI REST Endpoints\n/readings | /heatmap | /sites | /alerts"]
+            SPATIAL_ENG["Spatial & ML Engine\n- PostGIS ST_DWithin Divergence\n- Scikit-Learn IsolationForest"]
+            ENTRYPOINT["Entrypoint Auto-Migrations\n(alembic upgrade head)"]
+        end
+
+        subgraph Database_Container["Database Container (airsentine1_db :5432)"]
+            PG_DB[("PostGIS 16 Container\nEPSG:4326 Geography Points")]
+        end
+    end
+
+    subgraph Native_Clients["Mobile & Desktop Clients"]
         BLE_SVC["Bluetooth Telemetry Service\n(flutter_blue_plus)"]
         LOCAL_DB[("Local SQLite Database\n(local_readings / cached_sites)")]
         SYNC_SVC["Offline Sync Engine\n(connectivity_plus)"]
-        UI["UI Layer (Riverpod + GoRouter)\nDashboard | Map | AI Copilot | Reports"]
-    end
-
-    subgraph Cloud_Backend["FastAPI Backend (Docker Compose)"]
-        API_ROUTER["FastAPI REST Endpoints\n/readings | /heatmap | /sites | /alerts"]
-        SPATIAL_ENG["Spatial & ML Engine\n- PostGIS ST_DWithin Divergence\n- Scikit-Learn IsolationForest"]
-        ALEMBIC["Alembic Migrations"]
-    end
-
-    subgraph Storage["PostgreSQL + PostGIS (Spatial Database)"]
-        PG_DB[("PostGIS 16 Container\nEPSG:4326 Geography Points")]
     end
 
     ESP32 -->|BLE GATT Notifications| BLE_SVC
     SIM -.->|Virtual BLE Peripheral| BLE_SVC
-    BLE_SVC --> UI
     BLE_SVC --> LOCAL_DB
     LOCAL_DB <--> SYNC_SVC
     SYNC_SVC -->|Batch Ingestion HTTP POST| API_ROUTER
-    UI -->|Queries & Alerts| API_ROUTER
+
+    Browser["Web Browser (http://localhost:3000)"] --> NGINX
+    NGINX --> FLUTTER_WEB
+    NGINX -->|Proxy /api/ & /docs| API_ROUTER
+
     API_ROUTER --> SPATIAL_ENG
     SPATIAL_ENG <--> PG_DB
     API_ROUTER <--> PG_DB
-    ALEMBIC -->|Schema Migrations| PG_DB
+    ENTRYPOINT -->|Auto-apply Schema Migrations| PG_DB
 ```
 
 ---
@@ -99,12 +108,17 @@ flowchart TD
 ```
 IPD_AQI/
 ├── README.md                      # Comprehensive project documentation
+├── docker-compose.yml             # Full-stack multi-container orchestration (DB, API, Frontend)
+├── .env.example                   # Root environment configuration template
+├── .dockerignore                  # Root docker build ignore rules
 ├── requirements.txt               # Dependencies for BLE simulator (WinRT, bless, bleak)
 ├── simulator.py                   # Python BLE GATT peripheral & mock simulator
 │
 ├── backend/                       # FastAPI + PostGIS backend service
-│   ├── Dockerfile                 # Container image specification for FastAPI
-│   ├── docker-compose.yml         # Multi-container orchestration (PostGIS 16 + FastAPI)
+│   ├── Dockerfile                 # Container image specification with automated migration entrypoint
+│   ├── entrypoint.sh              # Auto Alembic database migration + uvicorn runner
+│   ├── docker-compose.yml         # Dedicated backend service orchestration (PostGIS 16 + FastAPI)
+│   ├── .dockerignore              # Backend docker build ignore rules
 │   ├── requirements.txt           # Python backend dependencies
 │   ├── alembic.ini                # Alembic migration configuration
 │   ├── README.md                  # Dedicated backend service documentation
@@ -148,6 +162,10 @@ IPD_AQI/
 │       └── test_spatial_engine.py # Spatial logic & IsolationForest unit tests
 │
 └── airsentine1/                   # Cross-platform Flutter client application
+    ├── Dockerfile                 # Multi-stage Flutter Web build & Nginx production runner
+    ├── Dockerfile.local           # Lightweight runner for pre-compiled web bundles
+    ├── nginx.conf                 # Nginx SPA fallback routing & /api reverse proxy
+    ├── .dockerignore              # Frontend docker build ignore rules
     ├── pubspec.yaml               # Flutter package configuration & dependencies
     ├── analysis_options.yaml      # Dart static analysis configuration
     │
@@ -373,48 +391,64 @@ erDiagram
 
 Ensure you have the following tools installed:
 - [Git](https://git-scm.com/)
-- [Docker & Docker Compose](https://www.docker.com/)
-- [Python 3.11+](https://www.python.org/)
-- [Flutter SDK (3.12+)](https://docs.flutter.dev/get-started/install)
+- [Docker & Docker Compose](https://www.docker.com/) (Docker Desktop on Windows/macOS or Docker Engine on Linux)
+- [Flutter SDK (3.12+)](https://docs.flutter.dev/get-started/install) *(only needed for native mobile/desktop or local development)*
+- [Python 3.11+](https://www.python.org/) *(only needed for local BLE simulator)*
 
 ---
 
-### Step 1: Backend Setup (Docker & PostGIS)
+### Step 1: Full-Stack Containerization (Everything in Docker)
 
-1. Open your terminal and navigate to the `backend/` directory:
-   ```bash
-   cd backend
-   ```
+Run the entire platform (PostGIS Database + FastAPI Backend + Flutter Web Frontend) with a single command from the project root:
 
-2. Create your environment file from the template:
+1. Create your root environment file from the template:
    ```bash
    cp .env.example .env
    ```
 
-3. Spin up the PostGIS database and FastAPI API containers:
+2. Spin up all containerized services:
    ```bash
    docker compose up --build -d
    ```
 
-4. Verify that both containers are healthy and running:
+3. Check running services:
    ```bash
    docker compose ps
    ```
 
+All three services will start in their respective containers:
+- 🌐 **Flutter Web Client**: [http://localhost:3000](http://localhost:3000) (Production Nginx with SPA routing & `/api` proxy)
+- ⚡ **FastAPI REST Backend**: [http://localhost:8000](http://localhost:8000)
+- 📚 **Interactive Swagger API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- 🗄️ **PostGIS 16 Database**: `localhost:5432`
+
+> **Note on Migrations**: The backend container automatically checks and applies all Alembic database migrations to PostGIS upon startup via its `entrypoint.sh` script.
+
 ---
 
-### Step 2: Database Migrations (Alembic)
+### Standalone Service Setup (Optional)
 
-Apply the database migrations to configure the PostGIS extension and generate all tables:
-
+#### Running Backend Services Only:
 ```bash
-docker compose exec api alembic upgrade head
+cd backend
+cp .env.example .env
+docker compose up --build -d
 ```
 
-Verify backend health by querying the health endpoint:
+#### Running Frontend Container Standalone:
 ```bash
-curl http://localhost:8000/health
-# Response: {"status":"ok"}
+cd airsentine1
+# Full multi-stage build:
+docker build -t airsentine1-frontend .
+docker run -d -p 3000:80 --name airsentine1_frontend airsentine1-frontend
+```
+
+#### Running Frontend with Fast Local Runner (if pre-compiled):
+```bash
+cd airsentine1
+flutter build web --release
+docker build -f Dockerfile.local -t airsentine1-frontend .
+docker run -d -p 3000:80 --name airsentine1_frontend airsentine1-frontend
 ```
 
 Access the interactive API documentation at [http://localhost:8000/docs](http://localhost:8000/docs).

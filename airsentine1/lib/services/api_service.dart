@@ -3,11 +3,23 @@ import 'package:airsentine1/models/heatmap_point.dart';
 import 'package:airsentine1/models/reading.dart';
 import 'package:airsentine1/models/site_history_response.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
-const String kDefaultBaseUrl = String.fromEnvironment(
-  'API_BASE_URL',
-  defaultValue: 'http://10.0.2.2:8000',
-);
+const String _envBaseUrl = String.fromEnvironment('API_BASE_URL');
+
+String get kDefaultBaseUrl {
+  if (_envBaseUrl.isNotEmpty) {
+    return _envBaseUrl;
+  }
+  if (kIsWeb) {
+    // In Docker Web deployment, Nginx reverse proxies /api requests to backend
+    return '';
+  }
+  if (defaultTargetPlatform == TargetPlatform.android) {
+    return 'http://10.0.2.2:8000';
+  }
+  return 'http://localhost:8000';
+}
 
 class ApiService {
   final Dio _dio;
