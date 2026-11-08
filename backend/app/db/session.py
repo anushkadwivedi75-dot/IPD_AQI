@@ -7,6 +7,7 @@ engine = create_async_engine(
     settings.async_database_url,
     echo=True,
     future=True,
+    connect_args={"statement_cache_size": 0},
 )
 
 AsyncSessionLocal = async_sessionmaker(
